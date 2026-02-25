@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0a0f;
+  --card: #1a1a2e;
+  --accent: #00ff88;
+  --sell: #ff4444;
+  --info: #4488ff;
+  --warn: #ff8844;
+}
+
+body {
+  background: var(--bg);
+  color: #e0e0e0;
+}
+
+/* Glow effects */
+.glow-green { text-shadow: 0 0 20px rgba(0, 255, 136, 0.3); }
+.glow-red { text-shadow: 0 0 20px rgba(255, 68, 68, 0.3); }
+.glow-blue { text-shadow: 0 0 20px rgba(68, 136, 255, 0.3); }
+
+.card {
+  @apply bg-card rounded-xl border border-white/5 p-6 transition-all duration-200;
+}
+.card:hover {
+  @apply border-white/10 bg-card-hover;
+}
+
+/* Pulse animation for running status */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse-dot {
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+.fade-in-delay-1 { animation-delay: 0.1s; opacity: 0; }
+.fade-in-delay-2 { animation-delay: 0.2s; opacity: 0; }
+.fade-in-delay-3 { animation-delay: 0.3s; opacity: 0; }
+.fade-in-delay-4 { animation-delay: 0.4s; opacity: 0; }
