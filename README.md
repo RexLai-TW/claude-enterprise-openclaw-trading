@@ -240,3 +240,4 @@ MIT — see [LICENSE](LICENSE) for details.
 ---
 
 **Built with [Claude](https://anthropic.com) + [OpenClaw](https://github.com/openclaw/openclaw)**
+**Built by @jjjjeerryyyy — 10 years in AI, still learning to trade.**
