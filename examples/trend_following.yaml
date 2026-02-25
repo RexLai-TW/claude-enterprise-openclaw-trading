@@ -1,0 +1,96 @@
+# Trend Following Strategy — Moving Average Crossover
+# Classic golden cross / death cross with RSI confirmation
+
+name: ma_crossover_trend_following
+description: >
+  Buy when 20-day SMA crosses above 50-day SMA (golden cross) 
+  and RSI is below 70 (not overbought). Sell when 20-day SMA 
+  crosses below 50-day SMA (death cross) or RSI exceeds 80.
+  Position size: 10% of portfolio per entry. Stop loss: 5%.
+
+symbol: BTC-USD
+timeframe: 1d
+
+nodes:
+  - id: root
+    type: condition
+    condition:
+      type: technical_indicator
+      indicator: sma_crossover
+      fast_period: 20
+      slow_period: 50
+      operator: "cross_above"
+    true_branch: confirm_rsi
+    false_branch: check_death_cross
+
+  - id: confirm_rsi
+    type: condition
+    condition:
+      type: technical_indicator
+      indicator: rsi
+      period: 14
+      operator: "<"
+      value: 70
+    true_branch: buy_entry
+    false_branch: hold
+
+  - id: buy_entry
+    type: action
+    action:
+      type: buy
+      position_sizing: percentage
+      size: 0.10
+
+  - id: check_death_cross
+    type: condition
+    condition:
+      type: technical_indicator
+      indicator: sma_crossover
+      fast_period: 20
+      slow_period: 50
+      operator: "cross_below"
+    true_branch: sell_exit
+    false_branch: check_overbought
+
+  - id: check_overbought
+    type: condition
+    condition:
+      type: technical_indicator
+      indicator: rsi
+      period: 14
+      operator: ">"
+      value: 80
+    true_branch: sell_exit
+    false_branch: check_stop
+
+  - id: sell_exit
+    type: action
+    action:
+      type: sell
+      position_sizing: all
+
+  - id: check_stop
+    type: condition
+    condition:
+      type: portfolio_condition
+      indicator: unrealized_pnl_pct
+      operator: "<"
+      value: -0.05
+    true_branch: stop_loss
+    false_branch: hold
+
+  - id: stop_loss
+    type: action
+    action:
+      type: stop_loss
+      position_sizing: all
+
+  - id: hold
+    type: action
+    action:
+      type: hold
+
+risk_management:
+  max_drawdown: 0.05
+  max_position_pct: 0.10
+  cooldown_after_stop_hours: 24

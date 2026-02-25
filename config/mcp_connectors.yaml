@@ -1,0 +1,138 @@
+# MCP Data Connector Configuration
+# Configure your data sources here - the system will fallback to free alternatives if enterprise keys are not provided
+
+connectors:
+  # Market Data
+  market_data:
+    primary:
+      name: "factset"
+      type: "mcp"
+      enabled: false  # Set to true when you have FactSet access
+      config:
+        endpoint: "https://api.factset.com"
+        timeout: 30
+        rate_limit: 100  # requests per minute
+    
+    fallback:
+      name: "yfinance"
+      type: "rest"
+      enabled: true
+      config:
+        base_url: "https://query1.finance.yahoo.com"
+        timeout: 10
+        rate_limit: 2000  # requests per hour
+        
+  # Cryptocurrency Data
+  crypto_data:
+    primary:
+      name: "coingecko"
+      type: "rest"
+      enabled: true
+      config:
+        base_url: "https://api.coingecko.com/api/v3"
+        timeout: 15
+        rate_limit: 50  # requests per minute (free tier)
+        demo_mode: true  # Uses free tier endpoints
+        
+  # Index Data (MSCI, S&P, etc.)
+  index_data:
+    primary:
+      name: "msci"
+      type: "mcp"
+      enabled: false  # Set to true when you have MSCI access
+      config:
+        endpoint: "https://api.msci.com"
+        timeout: 30
+        rate_limit: 50
+    
+    fallback:
+      name: "yfinance_indices"
+      type: "rest"
+      enabled: true
+      config:
+        symbols:
+          - "^GSPC"  # S&P 500
+          - "^DJI"   # Dow Jones
+          - "^IXIC"  # NASDAQ
+          - "^VIX"   # VIX Fear Index
+        
+  # Sentiment & Alternative Data
+  sentiment:
+    primary:
+      name: "fear_greed_index"
+      type: "rest"
+      enabled: true
+      config:
+        base_url: "https://api.alternative.me"
+        timeout: 10
+        cache_ttl: 3600  # 1 hour cache
+        
+    secondary:
+      name: "reddit_sentiment"
+      type: "custom"
+      enabled: false  # Requires Reddit API key
+      config:
+        subreddits:
+          - "wallstreetbets"
+          - "cryptocurrency"
+          - "investing"
+
+# MCP Tool Definitions
+mcp_tools:
+  get_market_data:
+    description: "Fetch OHLCV data for stocks, ETFs, indices"
+    parameters:
+      symbol:
+        type: "string"
+        required: true
+        description: "Stock ticker symbol (e.g., AAPL, BTC-USD)"
+      period:
+        type: "string"
+        required: true
+        enum: ["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y"]
+        description: "Data period to fetch"
+      interval:
+        type: "string"
+        required: false
+        enum: ["1m", "2m", "5m", "15m", "30m", "60m", "90m", "1h", "1d", "5d", "1wk", "1mo", "3mo"]
+        description: "Data interval (default: 1d)"
+    returns:
+      type: "object"
+      properties:
+        symbol: {"type": "string"}
+        data: {"type": "array"}
+        metadata: {"type": "object"}
+        
+  get_index_data:
+    description: "Fetch index values and components"
+    parameters:
+      index_name:
+        type: "string"
+        required: true
+        description: "Index name (e.g., SP500, NASDAQ100)"
+      include_components:
+        type: "boolean"
+        required: false
+        description: "Whether to include index components"
+    returns:
+      type: "object"
+      properties:
+        index: {"type": "string"}
+        value: {"type": "number"}
+        components: {"type": "array"}
+        
+  get_sentiment:
+    description: "Fetch sentiment indicators"
+    parameters:
+      indicator:
+        type: "string"
+        required: true
+        enum: ["fear_greed", "vix", "put_call_ratio"]
+        description: "Sentiment indicator to fetch"
+    returns:
+      type: "object"
+      properties:
+        indicator: {"type": "string"}
+        value: {"type": "number"}
+        interpretation: {"type": "string"}
+        timestamp: {"type": "string"}

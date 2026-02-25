@@ -1,0 +1,166 @@
+# OpenClaw Agent Configuration for Claude Enterprise Trading
+
+# Agent Orchestrator Settings
+orchestrator:
+  max_concurrent_strategies: 5
+  strategy_timeout_minutes: 60
+  health_check_interval: 30  # seconds
+  
+  # Risk Management
+  portfolio_limits:
+    max_total_exposure: 0.8  # 80% of portfolio
+    max_single_position: 0.1  # 10% per position
+    max_correlation: 0.7  # Max correlation between strategies
+    
+  # Circuit Breakers
+  circuit_breakers:
+    max_daily_loss_pct: 5.0
+    max_monthly_loss_pct: 15.0
+    consecutive_loss_limit: 3
+    cooldown_period_hours: 24
+
+# Strategy Agent Templates
+strategy_agents:
+  # Conservative long-term agent
+  conservative:
+    risk_profile: "low"
+    max_positions: 3
+    holding_period_days: 30
+    rebalance_frequency: "weekly"
+    allowed_assets:
+      - "stocks"
+      - "etfs"
+      - "bonds"
+    
+  # Aggressive swing trading agent  
+  aggressive:
+    risk_profile: "high"
+    max_positions: 8
+    holding_period_days: 5
+    rebalance_frequency: "daily"
+    allowed_assets:
+      - "stocks"
+      - "crypto"
+      - "forex"
+      
+  # Crypto specialist agent
+  crypto_focused:
+    risk_profile: "medium"
+    max_positions: 5
+    holding_period_days: 10
+    rebalance_frequency: "daily"
+    allowed_assets:
+      - "crypto"
+    
+# Claude API Configuration
+claude:
+  model: "claude-3-sonnet-20240229"
+  max_tokens: 4000
+  temperature: 0.1  # Low temperature for deterministic strategies
+  
+  # Strategy generation prompts
+  prompts:
+    strategy_creation: |
+      You are a professional quantitative trader. Convert the following natural language trading idea into a deterministic strategy tree.
+      
+      Requirements:
+      1. Use only technical indicators and market data available through our MCP connectors
+      2. Create clear if-else conditions with specific thresholds
+      3. Include position sizing rules
+      4. Add risk management conditions
+      5. Specify entry and exit criteria
+      
+      Return a valid JSON strategy tree following our schema.
+      
+    strategy_refinement: |
+      Based on the backtest results below, improve the strategy to meet these targets:
+      - Minimum Sharpe ratio: {min_sharpe}
+      - Maximum drawdown: {max_drawdown}%
+      - Minimum win rate: {min_win_rate}%
+      
+      Modify the existing strategy tree to achieve better performance while maintaining the core trading logic.
+
+# Backtest Configuration
+backtest:
+  default_settings:
+    initial_capital: 100000
+    commission: 0.001  # 0.1%
+    slippage: 0.0005  # 0.05%
+    start_date: "2020-01-01"
+    end_date: "2024-01-01"
+    
+  performance_targets:
+    min_sharpe_ratio: 1.0
+    max_drawdown_pct: 10.0
+    min_win_rate_pct: 45.0
+    min_trades: 20
+    
+# Execution Configuration
+execution:
+  mode: "paper"  # paper, webhook, api
+  dry_run: true
+  
+  # Paper trading settings
+  paper_trading:
+    initial_balance: 100000
+    realistic_slippage: true
+    market_impact: true
+    
+  # Webhook settings (for real execution)
+  webhook:
+    url: null  # Set in environment
+    timeout: 30
+    retry_attempts: 3
+    
+  # Position limits per strategy
+  position_limits:
+    max_position_value: 10000
+    max_leverage: 1.0
+    min_order_size: 100
+
+# Monitoring & Observability
+monitoring:
+  # OpenTelemetry settings
+  tracing:
+    enabled: true
+    service_name: "claude-enterprise-trading"
+    sample_rate: 1.0  # 100% for development
+    
+  # Metrics collection
+  metrics:
+    enabled: true
+    collection_interval: 60  # seconds
+    
+  # Alerting
+  alerts:
+    enabled: true
+    channels:
+      - "console"
+      # - "webhook"  # Configure webhook URL in environment
+    conditions:
+      - type: "drawdown_limit"
+        threshold: 5.0
+      - type: "strategy_error"
+        consecutive_failures: 3
+      - type: "connection_lost"
+        timeout: 300
+
+# Data Pipeline Configuration
+data:
+  # Caching settings
+  cache:
+    enabled: true
+    ttl_seconds: 300  # 5 minutes
+    max_size_mb: 100
+    
+  # Update frequencies
+  update_schedule:
+    market_data: "*/5 * * * *"  # Every 5 minutes
+    sentiment_data: "0 */6 * * *"  # Every 6 hours
+    index_data: "0 9,15 * * 1-5"  # 9 AM and 3 PM weekdays
+    
+  # Data validation
+  validation:
+    max_missing_data_pct: 5.0
+    min_data_points: 100
+    outlier_detection: true

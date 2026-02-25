@@ -1,0 +1,75 @@
+# BTC Fear & Greed Index Accumulation Strategy
+# Buy when market is fearful, sell when greedy
+# Classic contrarian approach with position sizing control
+
+name: btc_fear_greed_accumulation
+description: >
+  Accumulate BTC when Fear & Greed Index drops below 20 (extreme fear).
+  Buy in 3 batches, 4 hours apart, max 5% portfolio per batch.
+  Sell when index rises above 75 (greed). Stop loss at 8%.
+
+symbol: BTC-USD
+timeframe: 4h
+
+nodes:
+  - id: root
+    type: condition
+    condition:
+      type: sentiment_condition
+      indicator: fear_greed_index
+      operator: "<"
+      value: 20
+    true_branch: accumulate
+    false_branch: check_exit
+
+  - id: accumulate
+    type: action
+    action:
+      type: buy
+      position_sizing: percentage
+      size: 0.05  # 5% per batch
+      batches: 3
+      batch_interval_hours: 4
+      max_total_position: 0.15  # 15% max
+
+  - id: check_exit
+    type: condition
+    condition:
+      type: sentiment_condition
+      indicator: fear_greed_index
+      operator: ">"
+      value: 75
+    true_branch: sell_all
+    false_branch: check_stop_loss
+
+  - id: sell_all
+    type: action
+    action:
+      type: sell
+      position_sizing: all
+
+  - id: check_stop_loss
+    type: condition
+    condition:
+      type: portfolio_condition
+      indicator: unrealized_pnl_pct
+      operator: "<"
+      value: -0.08  # -8%
+    true_branch: stop_loss
+    false_branch: hold
+
+  - id: stop_loss
+    type: action
+    action:
+      type: stop_loss
+      position_sizing: all
+
+  - id: hold
+    type: action
+    action:
+      type: hold
+
+risk_management:
+  max_drawdown: 0.08
+  max_position_pct: 0.15
+  cooldown_after_stop_hours: 48
