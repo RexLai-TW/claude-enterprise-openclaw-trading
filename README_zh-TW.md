@@ -75,4 +75,4 @@ python scripts/generate_signals.py --strategy strategy.json --out signals.csv
 
 聯絡
 ----
-如需協助、翻譯其他檔案或將此中���版直接加到 repo（例如新增 README.zh.md 或替換 README），請告訴我你想要的動作：我可以直接幫你產生檔案內容、或協助建立 commit（你需授權或提供推送權限)。
+如需協助、翻譯其他檔案或將此中文版直接加到 repo（例如新增 README.zh.md 或替換 README），請告訴我你想要的動作：我可以直接幫你產生檔案內容、或協助建立 commit（你需授權或提供推送權限)。
